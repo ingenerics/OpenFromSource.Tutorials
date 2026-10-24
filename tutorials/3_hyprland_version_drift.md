@@ -116,7 +116,7 @@ Packages resolved:   2
 Errors:              0
 ```
 
-> **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as Tutorial 1, joined this time by lines like `Resolved 2/2WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
+> **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as Tutorial 2, joined this time by lines like `Resolved 2/2WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
 
 </details>
 

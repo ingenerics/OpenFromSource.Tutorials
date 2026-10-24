@@ -132,7 +132,7 @@ Provides entries:  69989
 Status:            initialized
 ```
 
-> **It's fine** — the backports `Failed to fetch` warnings are the same `.xz`-instead-of-`.gz` behavior as Tutorial 1, now also hitting the *source* indexes (`Sources.gz`). Notice this init also pulls those source indexes and adds `non-free-firmware` — the graybeard source set.
+> **It's fine** — the backports `Failed to fetch` warnings are the same `.xz`-instead-of-`.gz` behavior as Tutorial 2, now also hitting the *source* indexes (`Sources.gz`). Notice this init also pulls those source indexes and adds `non-free-firmware` — the graybeard source set.
 
 </details>
 

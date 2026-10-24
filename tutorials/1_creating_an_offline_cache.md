@@ -40,18 +40,28 @@ The recorded runs used the Debian 13.7 DVD installer. Where a command needs root
 
 > **Say what? — "virtual environment":** an isolated Python setup in `.venv` — the tool and its libraries live there, never touching the system Python. Its programs land in `.venv/bin/`.
 
-### Step 1.1 — Get the project and its system dependencies
+### Step 1.1 — Create the cache directory
+
+`package_mgmt` keeps its state under `/var/cache/package_mgmt`. Create it and hand it to your user:
+
+```bash
+$ export CACHEPATH="/var/cache/package_mgmt"
+$ sudo mkdir $CACHEPATH
+$ sudo chown -R $USER:$USER $CACHEPATH
+```
+
+### Step 1.2 — Get the project and its system dependencies
 
 ```bash
 vit@bis $ git clone https://github.com/ingenerics/OpenFromSource
 $ cd OpenFromSource
 $ sudo apt update
-$ sudo apt install -y git python3 python3-pip gpgv
+$ sudo apt install -y git python3 python3-pip gpgv gpg gpg-agent
 ```
 
 We're working from the repo directory, so the prompt `vit@bis OpenFromSource$` is where we'll spend the rest of the admin's part.
 
-### Step 1.2 — Install uv
+### Step 1.3 — Install uv
 
 It's best practice to run Python programs in an isolated environment. To be fair, this is less about security, more about not cluttering your system libraries. These tutorials create that environment with `uv`:
 
@@ -74,7 +84,7 @@ To add $HOME/.local/bin to your PATH, either restart your shell or run:
     source $HOME/.local/bin/env.fish (fish)
 ```
 
-### Step 1.3 — Create a virtual environment
+### Step 1.4 — Create a virtual environment
 
 Create it with a pinned Python, then activate it (note how the prompt changes):
 
@@ -97,7 +107,7 @@ vit@bis OpenFromSource$ source .venv/bin/activate
 (OpenFromSource) vit@bis OpenFromSource$ 
 ```
 
-### Step 1.4 — Install package_mgmt into the venv
+### Step 1.5 — Install package_mgmt into the venv
 
 Unless your last name is Thompson or Ritchie, a two-letter program name is asking for trouble. In the activated venv `pip install .` gives you `package_mgmt` (and pulls `pycdlib`, the ISO reader that Tutorial 5's `ensure-base` needs):
 
@@ -126,7 +136,7 @@ Successfully built package_mgmt
 Successfully installed package_mgmt-0.1.0 pycdlib-1.21.0 python-debian-1.1.1
 ```
 
-### Step 1.5 — Add the `pm` alias
+### Step 1.6 — Add the `pm` alias
 
 Once we have the program on our system, we can do what we want of course. Let's add an alias to save some keystrokes.  Check where the binary landed, then put the alias in `~/.bashrc` so it survives every shell:
 
@@ -227,17 +237,7 @@ Configuration:
 
 Everything the offline box will ever consume has to exist here first. The admin box is online, so it can reach Debian's mirrors, download the packages, and verify them against the signed indexes before anything leaves the system.
 
-### Step 3.1 — Create the cache directory
-
-`package_mgmt` keeps its state under `/var/cache/package_mgmt`. Create it and hand it to your user:
-
-```bash
-$ export CACHEPATH="/var/cache/package_mgmt"
-$ sudo mkdir $CACHEPATH
-$ sudo chown -R $USER:$USER $CACHEPATH
-```
-
-### Step 3.2 — Initialize the cache
+### Step 3.1 — Initialize the cache
 
 `pm init` builds the database and fetches the package **indexes** from the archive sources configured in the profile. It can take a couple of minutes.
 
@@ -256,12 +256,7 @@ INFO:package_mgmt.lib.service.initializer:Binary cache /var/cache/package_mgmt/b
 INFO:package_mgmt.lib.service.initializer:Source cache /var/cache/package_mgmt/source (was created)
 INFO:package_mgmt.lib.service.db_init:Database created at /var/cache/package_mgmt/package_mgmt.db (schema v1)
 INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/main/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/contrib/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/non-free/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.gz
-WARNING:package_mgmt.cli.commands.init:Failed to fetch https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.gz: index main/binary-amd64/Packages.gz is not listed in the signed release at https://deb.debian.org/debian/dists/trixie-backports
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.xz
-INFO:package_mgmt.lib.service.initializer:Populated 69982 provides entries into database
+INFO:package_mgmt.lib.service.initializer:Populated 68640 provides entries into database
 Base directory:    /var/cache/package_mgmt
 Binary cache:      /var/cache/package_mgmt/binary
 Source cache:      /var/cache/package_mgmt/source
@@ -270,19 +265,14 @@ Schema version:    1
 Default source:    trixie/main
 Archive sources:
   [1] trixie/main — 68825 binaries
-  [2] trixie/contrib — 303 binaries
-  [3] trixie/non-free — 741 binaries
-  [4] trixie-backports/main — 3279 binaries
-Provides entries:  69982
+Provides entries:  68640
 Status:            initialized
-INFO:package_mgmt.cli.commands.init:Init completed (base_dir=/var/cache/package_mgmt, base_dir=/var/cache/package_mgmt, schema=v1, provides=69982, status=initialized)
+INFO:package_mgmt.cli.commands.init:Init completed (base_dir=/var/cache/package_mgmt, schema=v1, provides=68640, status=initialized)
 ```
-
-> **It's fine** — the `WARNING` about `Packages.gz` "not listed in the signed release" for backports. Debian publishes the backports index compressed as `.xz`; `package_mgmt` noticed, fetched the `.xz` instead, and carried on.
 
 </details>
 
-### Step 3.3 — Register the first packages
+### Step 3.2 — Register the first packages
 
 Create a package list file. This is the shopping list for the whole box: a terminal, an editor, a file manager, monitors, a firewall, and storage tools.
 
@@ -311,7 +301,6 @@ vit@bis OpenFromSource$ pm add --file /tmp/base_pkgs.txt
 You should get something like:
 
 ```console
-INFO:package_mgmt.lib.service.resolver:Indexes loaded: 73148 binary packages, 0 source packages (2 sources configured)
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: openssl-provider-legacy -> libssl3t64
 Resolved 8/8
@@ -324,7 +313,7 @@ Errors:              0
 
 > **Say what? — "resolved":** the resolver worked out the full set of packages and exact versions needed to satisfy your list, including every dependency — the "closing the package graph" step.
 
-### Step 3.4 — Verify the graph is complete
+### Step 3.3 — Verify the graph is complete
 
 Look at what `vifm` drags in, then run the full verification:
 
@@ -374,7 +363,7 @@ Status:                 COMPLETE
 
 </details>
 
-### Step 3.5 — Download the payload
+### Step 3.4 — Download the payload
 
 This might come as a surprise, but all we've done so far is `add` metadata to the `package_mgmt` database. This design is intentional, not an afterthought. We can add as many packages as we'd like *before* triggering the download. Which will then only pull the minimal set that has not been retrieved yet.
 
@@ -388,7 +377,7 @@ You should see a progress bar and a summary:
 
 ```console
 vit@bis OpenFromSource$ pm download
-Elapsed: 00:04:05
+Elapsed: 00:00:15
 [████████████████████████████████████████] 156/156 files (74.2 MiB/74.2 MiB)
 …
 Total: 156 files downloaded, 156 verified, 0 failed (00:04:05)

@@ -85,7 +85,7 @@ Packages resolved:   2
 Errors:              0
 ```
 
-> **It's fine** — the two `Circular dependency` warnings, same as Tutorial 1. Keep an eye on `Errors:` at the end instead.
+> **It's fine** — the `WARNING` about `Packages.gz` "not listed in the signed release" for backports. Debian publishes the backports index compressed as `.xz`; `package_mgmt` noticed, fetched the `.xz` instead, and carried on.
 
 ### Step 1.3 — Verify and download
 
