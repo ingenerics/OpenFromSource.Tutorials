@@ -1,6 +1,6 @@
 # Tutorial 1 — Creating an offline cache to hand over on a USB stick
 
-◂ [All tutorials](README.md) · [Tutorial 2 — A newer kernel from backports](2_kernel_from_backports.md) ▸
+◂ [All tutorials](../README.md) · [Tutorial 2 — A newer kernel from backports](2_kernel_from_backports.md) ▸
 
 Let's build a local cache with packages, so that `apt` can install them on offline systems. 
 

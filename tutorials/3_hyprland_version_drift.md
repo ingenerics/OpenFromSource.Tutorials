@@ -1,6 +1,6 @@
 # Tutorial 3 — Hyprland from backports, and the version-drift trap
 
-◂ [Tutorial 2 — A newer kernel from backports](2_kernel_from_backports.md) · [All tutorials](README.md) · [Tutorial 4 — An offline NAS from a USB stick](4_simplest_ewaste_nas.md) ▸
+◂ [Tutorial 2 — A newer kernel from backports](2_kernel_from_backports.md) · [All tutorials](../README.md) · [Tutorial 4 — An offline NAS from a USB stick](4_simplest_ewaste_nas.md) ▸
 
 Hyprland, the Wayland compositor, lives in backports — and backports versions drag their own shared libraries along. When those land on a box that was built from main, something has to give. This chapter installs Hyprland on the offline box, watches the version-drift trap remove your terminal emulator, and rebuilds one small library on the operator's side to get it back. Both stay apt-managed. Both stay offline.
 

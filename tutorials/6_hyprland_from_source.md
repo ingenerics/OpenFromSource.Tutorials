@@ -1,6 +1,6 @@
 # Tutorial 6 — Building Hyprland from source
 
-◂ [Tutorial 5 — Ensuring the full base set from the installer DVD](5_ensure_base_packages.md) · [All tutorials](README.md) · [Tutorial 7 — Importing Hyprland into the cache](7_import_hyprland_stack.md) ▸
+◂ [Tutorial 5 — Ensuring the full base set from the installer DVD](5_ensure_base_packages.md) · [All tutorials](../README.md) · [Tutorial 7 — Importing Hyprland into the cache](7_import_hyprland_stack.md) ▸
 
 The backports Hyprland in Tutorial 3 was a prebuilt black box: you couldn't rebuild it, and it dragged a version-drift mess behind it. This is the alpha endgame — from the full base cache, pin the exact Hyprland era, clone the twelve source repos, fix the two portal build bugs, and compile the whole stack bottom-up with nothing but the cache. By the end: **build complete: the Hyprland stack is installed at /usr**.
 

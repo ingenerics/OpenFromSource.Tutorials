@@ -1,6 +1,6 @@
 # Tutorial 2 — A newer kernel from backports
 
-◂ [Tutorial 1 — Creating an offline cache](1_creating_an_offline_cache.md) · [All tutorials](README.md) · [Tutorial 3 — Hyprland from backports, and the version-drift trap](3_hyprland_version_drift.md) ▸
+◂ [Tutorial 1 — Creating an offline cache](1_creating_an_offline_cache.md) · [All tutorials](../README.md) · [Tutorial 3 — Hyprland from backports, and the version-drift trap](3_hyprland_version_drift.md) ▸
 
 The offline box works, but the kernel on the installer DVD is already quite old: trixie ships 6.12.107, and our plans envision the 7.1.8 kernel that only exists in backports. This chapter pulls it through the same cache pipeline you already know — add, download, sync, apply, install — and proves the box is now booting the newer kernel, still with **Download size: 0 B**.
 

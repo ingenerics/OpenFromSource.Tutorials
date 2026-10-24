@@ -1,6 +1,6 @@
 # Tutorial 4 — An offline NAS installed from a USB stick
 
-◂ [Tutorial 3 — Hyprland from backports, and the version-drift trap](3_hyprland_version_drift.md) · [All tutorials](README.md) · [Tutorial 5 — The full base set, straight from the installer DVD](5_ensure_base_packages.md) ▸
+◂ [Tutorial 3 — Hyprland from backports, and the version-drift trap](3_hyprland_version_drift.md) · [All tutorials](../README.md) · [Tutorial 5 — The full base set, straight from the installer DVD](5_ensure_base_packages.md) ▸
 
 They say complexity brings technical debt. Let's flip it: the simplest NAS possible — a Debian box, one NFS export, a firewall — set up with no internet, using only the local cache on a USB stick. This chapter adds a third system to the cast: the NAS box itself, bootstrapped *live off the stick*, then hardened and serving its storage over NFS to the rest of the LAN.
 

@@ -1,6 +1,6 @@
 # Tutorial 7 — Importing Hyprland into the cache
 
-◂ [Tutorial 6 — Building Hyprland from source](6_hyprland_from_source.md) · [All tutorials](README.md) ▸
+◂ [Tutorial 6 — Building Hyprland from source](6_hyprland_from_source.md) · [All tutorials](../README.md) ▸
 
 Tutorial 6 compiled the Hyprland stack and installed it to `/usr` on the build box. But the end goal are the offline machines. This chapter stages the same build, packages all thirteen components into proper `.deb` + source pairs, and imports them into the cache's `local` component — so operators install Hyprland with plain `apt`, offline, no `dpkg -i`, and every shipped binary is linked to a rebuildable source. It also pays off the promise from Tutorial 3: your one-off rebuild can ride the cache like everything else.
 

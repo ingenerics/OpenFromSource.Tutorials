@@ -1,6 +1,6 @@
 # Tutorial 5 — Ensuring the full base set from the installer DVD
 
-◂ [Tutorial 4 — An offline NAS installed from a USB stick](4_simplest_ewaste_nas.md) · [All tutorials](README.md) · [Tutorial 6 — Building Hyprland from source](6_hyprland_from_source.md) ▸
+◂ [Tutorial 4 — An offline NAS installed from a USB stick](4_simplest_ewaste_nas.md) · [All tutorials](../README.md) · [Tutorial 6 — Building Hyprland from source](6_hyprland_from_source.md) ▸
 
 Everything so far ran on hand-picked package lists. This is the upgrade path to "turtles all the way down": a cache holding the **entire Debian base** — every binary *and* every source, with every build tool — so any machine, any package, can be rebuilt offline. The installer DVD is the key: its index seeds the whole base set. This chapter builds that cache: 14,856 binaries and 26,527 sources, 34 GiB, every file verified.
 
