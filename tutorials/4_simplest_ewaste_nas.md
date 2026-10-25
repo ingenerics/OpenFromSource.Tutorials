@@ -138,7 +138,7 @@ vit@e-waste ~$ sudo mount /dev/sdb1 /mnt/offline-cache
 vit@e-waste ~$ sudo /mnt/offline-cache/package_mgmt/binary/handoff/bootstrap.sh
 ```
 
-<details><summary>Full bootstrap log</summary>
+<details><summary>bootstrap log</summary>
 
 ```console
 vit@e-waste ~$ sudo /mnt/offline-cache/package_mgmt/binary/handoff/bootstrap.sh
@@ -262,7 +262,7 @@ Find the data disk with `lsblk`:
 vit@e-waste ~$ lsblk
 ```
 
-<details><summary>Full lsblk output</summary>
+<details><summary>lsblk output</summary>
 
 ```console
 vit@e-waste ~$ lsblk

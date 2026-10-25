@@ -256,7 +256,7 @@ vit@bis OpenFromSource$ pm init
 
 > **Say what? — "archive sources":** the Debian repositories `package_mgmt` mirrors. This is where the resolver looks for packages. For the log below we used a profile listing `trixie` main/contrib/non-free plus `trixie-backports` main.
 
-<details><summary>Full init log</summary>
+<details><summary>init log</summary>
 
 ```console
 Base directory:    /var/cache/package_mgmt
@@ -325,7 +325,7 @@ $ pm verify
 
 `pm list --deps vifm` prints vifm's dependency closure. `pm verify` checks the whole graph and reports two sections: runtime dependencies and build-tool dependencies. 
 
-<details><summary>Full verification log</summary>
+<details><summary>verification log</summary>
 
 The long `Beyond source depth` list is the closure of every package that has landed in the cache.
 
@@ -468,7 +468,7 @@ op@ex-box flash$ sudo cp -r package_mgmt /var/cache/
 op@ex-box ~$ sudo /var/cache/package_mgmt/binary/handoff/bootstrap.sh
 ```
 
-<details><summary>Full bootstrap log</summary>
+<details><summary>bootstrap log</summary>
 
 ```console
 op@ex-box ~$ sudo /var/cache/package_mgmt/binary/handoff/bootstrap.sh

@@ -246,7 +246,7 @@ Continue? [Y/n]
 
 **Download size: 0 B** again — the whole 239 MB comes from the cache. The details below show the tail of the install: new initramfs, new GRUB entry, and the old kernel kept as a fallback.
 
-<details><summary>Full kernel install log</summary>
+<details><summary>kernel install log</summary>
 
 ```console
 Get:1 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-base all 4.17~bpo13+1 [26.8 kB]

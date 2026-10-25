@@ -61,7 +61,7 @@ jq
 vit@bis OpenFromSource$ pm add --file /tmp/hyprland_main.txt
 ```
 
-<details><summary>Full add log</summary>
+<details><summary>add log</summary>
 
 ```console
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
@@ -77,6 +77,8 @@ Errors:              0
 You should get a similar summary — the exact `Packages requested`/`Resolved` counts vary with your cache. Then verify and download as usual. None of this is required for the trap story, so skip it if you'd rather go straight to Hyprland.
 
 > **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as Tutorial 2, joined this time by lines like `Resolved 1/9WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
+
+</details>
 
 ### Step 1.2 — Switch on the developer profile
 
@@ -107,7 +109,7 @@ hyprland-guiutils
 vit@bis OpenFromSource$ pm add --file /tmp/hyprland_backports.txt --source trixie-backports
 ```
 
-<details><summary>Full add log</summary>
+<details><summary>add log</summary>
 
 ```console
 vit@bis OpenFromSource$ pm add --file /tmp/hyprland_backports.txt --source trixie-backports
@@ -145,6 +147,7 @@ The status will now show `INCOMPLETE`, we'll come back to that. Next download �
 ```bash
 vit@bis OpenFromSource$ pm download
 ```
+Output
 
 ```console
 vit@bis OpenFromSource$ pm download
@@ -309,7 +312,7 @@ With `source = true`, this links the binary to the `libxkbcommon` source and res
 vit@bis OpenFromSource$ pm list --deps libxkbcommon-x11-0 --include-build-deps
 ```
 
-<details><summary>Full dependency tree including build deps</summary>
+<details><summary>dependency tree including build deps</summary>
 
 ```console
 libxkbcommon-x11-0 (current)
@@ -340,8 +343,9 @@ libxkbcommon-x11-0 (current)
   ├─ [build] debhelper (= 13.24.2) [binary ✓, verified: ✗]
   └─ [build] wayland-protocols (= 1.44-1) [binary ✓, verified: ✗]
 ```
+</details>
 
-<details><summary>Full download log</summary>
+<details><summary>download log</summary>
 
 ```console
 vit@bis OpenFromSource$ pm download
@@ -379,7 +383,7 @@ The source files are the `libxkbcommon_1.7.0-2.dsc`, `.orig.tar.xz` and `.debian
 vit@bis OpenFromSource$ pm verify
 ```
 
-<details><summary>Full verification log</summary>
+<details><summary>verification log</summary>
 
 ```console
 Build-Tool Dependencies
@@ -447,7 +451,7 @@ op@ex-box ~$ sudo apt install bison debhelper dh-exec doxygen flex graphviz \
     x11-xkb-utils x11proto-dev xkb-data xvfb
 ```
 
-<details><summary>Full build-deps failure log</summary>
+<details><summary>build-deps failure log</summary>
 
 ```console
 op@ex-box ~$ sudo apt install bison debhelper dh-exec doxygen flex graphviz \
@@ -534,7 +538,7 @@ op@ex-box ~/src$ sudo apt install ./libxkbcommon-x11-0_1.7.0-2_amd64.deb
 
 > **Watch out** — **Don't install** `libxkbcommon0_1.7.0-2_amd64.deb`. Installing it would downgrade the core library and break Hyprland. Only the X11 helper gets the relaxed pin.
 
-<details><summary>Full install log</summary>
+<details><summary>install log</summary>
 
 ```console
 op@ex-box src$ sudo apt install ./libxkbcommon-x11-0_1.7.0-2_amd64.deb 
@@ -601,6 +605,8 @@ ii  libxkbcommon0:amd64              1.13.1-1~bpo13+1                     amd64 
 
 The two packages you could never install together in Milestone 2 are now both installed: `libxkbcommon-x11-0` at the locally rebuilt `1.7.0-2`, `libxkbcommon0` still on backports `1.13.1`. `apt-cache policy` confirms the split is stable — details below. Log into the Hyprland session and open kitty under Wayland to confirm end to end.
 
+> **Good to know** — until backports ships a `libxkbcommon-x11-0` that matches its own `libxkbcommon0`, a future `apt upgrade` might try to replace your local build. If it does, `apt-mark hold libxkbcommon-x11-0` stops it — and Tutorial 7 shows the proper endgame: rebuild the whole stack to align it with stock Debian (no backports) and import it into the cache, so the operator gets it through the normal handoff.
+
 <details><summary>apt-cache policy output</summary>
 
 ```console
@@ -624,8 +630,6 @@ libxkbcommon-x11-0:
 ```
 
 </details>
-
-> **Good to know** — until backports ships a `libxkbcommon-x11-0` that matches its own `libxkbcommon0`, a future `apt upgrade` might try to replace your local build. If it does, `apt-mark hold libxkbcommon-x11-0` stops it — and Tutorial 7 shows the proper endgame: rebuild the whole stack to align it with stock Debian (no backports) and import it into the cache, so the operator gets it through the normal handoff.
 
 ## If it breaks
 
