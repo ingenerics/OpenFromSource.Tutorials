@@ -77,6 +77,7 @@ Then download — the whole NFS set is under a megabyte:
 ```bash
 vit@bis OpenFromSource$ pm download
 ```
+Output
 
 ```console
 vit@bis OpenFromSource$ pm download
@@ -138,6 +139,10 @@ vit@e-waste ~$ sudo mount /dev/sdb1 /mnt/offline-cache
 vit@e-waste ~$ sudo /mnt/offline-cache/package_mgmt/binary/handoff/bootstrap.sh
 ```
 
+> **Watch out** — three rules for the live-mount trick: (1) the stick must be **ext4/btrfs**, because the handoff links `pool → ../pool` and the bootstrap hard-fails on media without symlinks (FAT/exFAT); (2) keep the **mountpoint stable** — the sources entry stores the absolute path, so if you remount elsewhere, re-run the bootstrap to rewrite the entry or apt breaks; (3) **keep it mounted until the installs finish** — apt reads the pool through that symlink during install.
+
+> **Good to know** — the bootstrap is idempotent: re-running it is safe. And when you're truly done with the cache, `bootstrap.sh --remove` tears the apt entry back down.
+
 <details><summary>bootstrap log</summary>
 
 ```console
@@ -161,10 +166,6 @@ apt update: OK
 ```
 
 </details>
-
-> **Watch out** — three rules for the live-mount trick: (1) the stick must be **ext4/btrfs**, because the handoff links `pool → ../pool` and the bootstrap hard-fails on media without symlinks (FAT/exFAT); (2) keep the **mountpoint stable** — the sources entry stores the absolute path, so if you remount elsewhere, re-run the bootstrap to rewrite the entry or apt breaks; (3) **keep it mounted until the installs finish** — apt reads the pool through that symlink during install.
-
-> **Good to know** — the bootstrap is idempotent: re-running it is safe. And when you're truly done with the cache, `bootstrap.sh --remove` tears the apt entry back down.
 
 ### Step 2.3 — Upgrade and prove the box is served
 
@@ -291,11 +292,12 @@ mmcblk0boot1 179:512  0    2M  1 disk
 
 Here `/dev/sdd` is the Trixie boot drive and `/dev/sda`/`/dev/sdb` are the actual storage disks, already mounted at `/srv/bcup` and `/srv/local`. We'll export the whole `/srv` tree so both stay reachable over the LAN.
 
-Give the export to the nobody/nogroup user (that's what NFS maps anonymous requests to), then declare the export in `/etc/exports`:
+Give the export to the nobody/nogroup user (that's what NFS maps anonymous requests to).
 
 ```bash
 vit@e-waste ~$ sudo chown -R nobody:nogroup /srv
 ```
+Then declare the export in `/etc/exports`:
 
 ```txt
 /srv    192.168.0.0/255.255.0.0(rw,sync,fsid=0,crossmnt,no_subtree_check)
@@ -309,6 +311,7 @@ Restart and list what the server is exporting:
 vit@e-waste ~$ sudo systemctl restart nfs-server
 $ sudo showmount -e
 ```
+Output
 
 ```console
 vit@e-waste ~$ sudo showmount -e
@@ -331,7 +334,7 @@ $ sudo mount.nfs4 192.168.60.70:/ /mnt
 
 ## Checkpoint — prove the NAS serves
 
-From the NAS side, the export is visible:
+From the NAS side, the export is still visible:
 
 ```console
 vit@e-waste ~$ sudo showmount -e

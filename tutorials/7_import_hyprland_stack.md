@@ -40,7 +40,7 @@ The build dirs from Tutorial 6 are still warm, so most of the run reports "no wo
 vit@bis OpenFromSource$ sudo ./scripts/build-hyprland.sh --stage staging
 ```
 
-<details><summary>Full staged build log (trimmed)</summary>
+<details><summary>staged build log (trimmed)</summary>
 
 ```console
 vit@bis OpenFromSource$ sudo ./scripts/build-hyprland.sh --stage staging
@@ -98,23 +98,16 @@ Installing /home/vit/code/OpenFromSource/repos/xdg-desktop-portal-hyprland/hyprl
 build complete: the Hyprland stack is staged at /home/vit/code/OpenFromSource/staging/<component>
 ```
 
-</details>
-
 > **It's fine** — the `Directory already configured` / `ninja: no work to do` lines. The build dirs are reused from Tutorial 6; only the installs are redirected into `staging/`.
+
+</details>
 
 ### Step 1.2 — Check the staging root
 
 ```bash
-vit@bis OpenFromSource$ ll staging
-```
-
-```console
-vit@bis OpenFromSource$ ll staging
-total 59K
-drwxrwxr-x 14 vit  vit  4.0K Oct 20 12:11 .
-…
-aquamarine  hyprcursor  hyprgraphics  hypridle  Hyprland  hyprland-protocols
-hyprlang  hyprlock  hyprpaper  hyprutils  hyprwayland-scanner  sdbus-c++  xdg-desktop-portal-hyprland
+vit@bis OpenFromSource$ ls staging
+aquamarine  hyprgraphics  Hyprland            hyprlang  hyprpaper  hyprwayland-scanner  xdg-desktop-portal-hyprland
+hyprcursor  hypridle      hyprland-protocols  hyprlock  hyprutils  sdbus-c++
 ```
 
 Thirteen directories, one per component — each one the payload of the package about to be built from it.
@@ -126,6 +119,8 @@ Now the generic tool does the packaging. `package-stack` reads the **recipe**, a
 > **Say what? — "recipe":** `recipes/hyprland.toml` — the entire stack-specific input: the 13 components, versions, build systems, metadata. The tool itself contains no stack knowledge.
 
 > **Say what? — "local component":** the part of the cache holding locally built packages. It ships to operators through the ordinary handoff/sync, signed and hashed in the same `Release` as the archive components (read: "local" sits next to "main", "contrib", "non-free", "non-free-firmware").
+
+> **Good to know** — To give a better indication of the progress we're making over the following steps, I bumped log level to INFO in `project.local.toml`.
 
 ### Step 2.1 — First try: the gate finds what the cache lacks
 
@@ -227,7 +222,7 @@ vit@bis OpenFromSource$ pm sync --system ex-box
 Copy the `diff` onto the stick as usual. On the operator side, apply the diff, then re-run `bootstrap.sh` (idempotent) for it to write the `deb-src` line for `local`, so operators can fetch source offline too:
 
 ```bash
-op@ex-box ~$ sudo cp -r diff /var/cache/package_mgmt/binary/
+op@ex-box cache$ sudo cp -r diff /var/cache/package_mgmt/binary/
 $ sudo /var/cache/package_mgmt/binary/diff/apply.sh
 $ sudo /var/cache/package_mgmt/binary/handoff/bootstrap.sh
 $ sudo apt update

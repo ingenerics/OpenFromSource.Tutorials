@@ -37,10 +37,11 @@ No operator this chapter — this is admin-side work, preparing the cache that l
 
 The tool is installed and `pm` is in your `~/.bashrc` (Tutorial 1). This chapter builds a separate base cache with the graybeard profile — and `ensure-base` only runs on an **empty** cache, so this one starts from scratch.
 
-### Step 1.1 — Create the cache directory and drop in the ISO
+### Step 1.1 — Create a new cache directory and drop in the ISO
 
 ```bash
 $ export CACHEPATH="/var/cache/package_mgmt"
+$ sudo rm -rf $CACHEPATH
 $ sudo mkdir $CACHEPATH
 $ sudo chown -R $USER:$USER $CACHEPATH
 ```
@@ -94,28 +95,10 @@ From the project root (may take a minute):
 vit@bis OpenFromSource$ pm init
 ```
 
-<details><summary>Full init log</summary>
+<details><summary>init log</summary>
 
 ```console
 vit@bis OpenFromSource$ pm init
-INFO:package_mgmt.lib.service.initializer:Binary cache /var/cache/package_mgmt/binary (was created)
-INFO:package_mgmt.lib.service.initializer:Source cache /var/cache/package_mgmt/source (was created)
-INFO:package_mgmt.lib.service.db_init:Database created at /var/cache/package_mgmt/package_mgmt.db (schema v1)
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/main/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/main/source/Sources.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/contrib/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/contrib/source/Sources.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/non-free/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/non-free/source/Sources.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/non-free-firmware/binary-amd64/Packages.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/non-free-firmware/source/Sources.gz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.gz
-WARNING:package_mgmt.cli.commands.init:Failed to fetch https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.gz: index main/binary-amd64/Packages.gz is not listed in the signed release at https://deb.debian.org/debian/dists/trixie-backports
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/binary-amd64/Packages.xz
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/source/Sources.gz
-WARNING:package_mgmt.cli.commands.init:Failed to fetch https://deb.debian.org/debian/dists/trixie-backports/main/source/Sources.gz: index main/source/Sources.gz is not listed in the signed release at https://deb.debian.org/debian/dists/trixie-backports
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie-backports/main/source/Sources.xz
-INFO:package_mgmt.lib.service.initializer:Populated 69989 provides entries into database
 Base directory:    /var/cache/package_mgmt
 Binary cache:      /var/cache/package_mgmt/binary
 Source cache:      /var/cache/package_mgmt/source
@@ -127,12 +110,9 @@ Archive sources:
   [2] trixie/contrib — 303 binaries, 159 sources
   [3] trixie/non-free — 741 binaries, 262 sources
   [4] trixie/non-free-firmware — 44 binaries, 14 sources
-  [5] trixie-backports/main — 3356 binaries, 942 sources
-Provides entries:  69989
+Provides entries:  69545
 Status:            initialized
 ```
-
-> **It's fine** — the backports `Failed to fetch` warnings are the same `.xz`-instead-of-`.gz` behavior as Tutorial 2, now also hitting the *source* indexes (`Sources.gz`). Notice this init also pulls those source indexes and adds `non-free-firmware` — the graybeard source set.
 
 </details>
 
@@ -144,13 +124,14 @@ Status:            initialized
 vit@bis OpenFromSource$ pm ensure-base
 ```
 
-<details><summary>Full ensure-base log (trimmed)</summary>
+4447 of 4448 packages resolved, 23 errors — and every one of those errors wears a `7zip:` prefix that is a red herring. Here's the real story:
+
+> **It's fine** — the `7zip:` prefix is misleading; those errors are **not** from 7zip. `ensure-base` resolves all 4,448 names in one batch, and by design every build-dep error in the batch attaches to the *first* segment only — and `7zip` sorts first. The 23 lines are really five sources' build-tool gaps, and they only affect *rebuilding those sources from scratch*. Every binary in the base set resolves and downloads fine.
+
+<details><summary>ensure-base log (trimmed)</summary>
 
 ```console
 vit@bis OpenFromSource$ pm ensure-base
-INFO:package_mgmt.lib.service.db_init:Database schema validated at /var/cache/package_mgmt/package_mgmt.db (v1)
-INFO:package_mgmt.lib.service.initializer:Populated 0 provides entries into database
-INFO:package_mgmt.lib.service.resolver:Indexes loaded: 73269 binary packages, 39020 source packages (2 sources configured)
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
 Resolved 1/4448WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: openssl-provider-legacy -> libssl3t64
 Resolved 24/4448WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libheif-plugin-dav1d -> libheif1
@@ -178,12 +159,7 @@ Errors:           23
   - 7zip: Alternative group 'nodejs | nodejs' could not be resolved
 <SNIP — 13 more 7zip-prefixed lines omitted>
 ```
-
 </details>
-
-4447 of 4448 packages resolved, 23 errors — and every one of those errors wears a `7zip:` prefix that is a red herring. Here's the real story:
-
-> **It's fine** — the `7zip:` prefix is misleading; those errors are **not** from 7zip. `ensure-base` resolves all 4,448 names in one batch, and by design every build-dep error in the batch attaches to the *first* segment only — and `7zip` sorts first. The 23 lines are really five sources' build-tool gaps, and they only affect *rebuilding those sources from scratch*. Every binary in the base set resolves and downloads fine.
 
 <details><summary>What the 23 errors actually are</summary>
 
@@ -205,7 +181,9 @@ The `Build tool not resolved: X | X` / `Alternative group …` lines are the sam
 vit@bis OpenFromSource$ pm verify
 ```
 
-<details><summary>Full verification log (trimmed)</summary>
+**Runtime Status: COMPLETE.** The build-tool status is `INCOMPLETE` over exactly 12 missing tools — the same five sources from the ensure-base errors, plus `zsh`'s `yodl`. These don't block installation: every binary in the base set is present and installable. They only matter if you try to rebuild `gcc-12`, `mariadb`, `obconf`, `lxappearance-obconf`, `acorn` or `zsh` from source offline.
+
+<details><summary>verification log (trimmed)</summary>
 
 ```console
 vit@bis OpenFromSource$ pm verify
@@ -245,8 +223,6 @@ Build Status:           INCOMPLETE
 ```
 
 </details>
-
-**Runtime Status: COMPLETE.** The build-tool status is `INCOMPLETE` over exactly 12 missing tools — the same five sources from the ensure-base errors, plus `zsh`'s `yodl`. These don't block installation: every binary in the base set is present and installable. They only matter if you try to rebuild `gcc-12`, `mariadb`, `obconf`, `lxappearance-obconf`, `acorn` or `zsh` from source offline.
 
 ## Milestone 4 — Download the entire base
 

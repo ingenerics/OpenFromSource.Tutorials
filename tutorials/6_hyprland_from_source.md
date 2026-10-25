@@ -36,7 +36,7 @@ Hyprland releases are *eras*: each version (0.49, 0.50, …) moves the whole sta
 
 The alignment gate picks the newest era whose *declared* requirements fit the frozen tree, which would be era 0.50. But the build is the final arbiter: eras 0.50+ fail at compile time on requirements the gate can't see, and the era is therefore **pinned at 0.49** in the recorded manifest.
 
-> **Good to know** — I left the behavior described above intact, because it can pay to stretch it just a little. If you only need to bring in a couple of build dependencies (manually), it might still be something to consider.
+> **Good to know** — I left the behavior described above intact, because it can pay to stretch the boundaries just a little. If you only need to bring in a couple of build dependencies (manually), it might still be something to consider.
 
 <details><summary>Why 0.49 and not 0.50+</summary>
 
@@ -124,7 +124,7 @@ Some pinned refs vendor submodules. The important one: `xdg-desktop-portal-hyprl
 $ for d in repos/*/; do git -C "$d" submodule update --init --recursive; done
 ```
 
-<details><summary>Full submodule log</summary>
+<details><summary>submodule log</summary>
 
 ```console
 vit@bis OpenFromSource$ for d in repos/*/; do git -C "$d" submodule update --init --recursive; done
@@ -149,14 +149,18 @@ Submodule path 'subprojects/sdbus-cpp': checked out 'b7d85f936d622299ee57966c2b2
 
 ### Step 1.6 — Verify the whole tree
 
-You can manually check every `HEAD`, the submodule pins, the `sdbus-c++` tag, or just ask the gate again — the last command is the one that matters:
+You can manually check every `HEAD`, the submodule pins, the `sdbus-c++` tag. 
 
 ```bash
 $ for d in repos/*/; do echo "$(basename "$d"): $(git -C "$d" rev-parse HEAD)"; done
 $ git -C repos/Hyprland submodule status
 $ git -C repos/xdg-desktop-portal-hyprland submodule status
 $ git -C repos/xdg-desktop-portal-hyprland/subprojects/sdbus-cpp describe --tags --exact-match
-$ pm align-repo --verify manifests/hyprland-0.49.toml --repo-dir repos/
+```
+Or just ask the gate again, this is the command that matters.
+
+```bash
+vit@bis OpenFromSource$ pm align-repo --verify manifests/hyprland-0.49.toml --repo-dir repos/
 ```
 Output
 
@@ -199,7 +203,7 @@ if "dependency('hyprutils')" not in s:
 EOF
 ```
 
-> **Good to know** — I didn't include this in `scripts/build-hyprland.sh` to make it stand out next time I revisit everything for the next Debian LTS.
+> **Good to know** — this wasn't included in `scripts/build-hyprland.sh` to make it stand out next time we need to revisit everything for the next Debian LTS.
 
 ## Milestone 3 — Build the stack bottom-up from the cache
 
@@ -230,7 +234,7 @@ vit@bis OpenFromSource$ ./scripts/build-hyprland.sh
 
 <details><summary>For extra points — a headless Hyprland</summary>
 
-Want to use Hyprland as a headless desktop (virtualized setup, remoting in)? See https://github.com/hyprwm/Hyprland/pull/13616 (and its companion in aquamarine, https://github.com/hyprwm/aquamarine/pull/255). Spoiler alert; there's a little more to it than meets the eye, at least on trixie. Still wanted to plant a seed, even though it would lead us too far for this tutorial.
+Want to use Hyprland as a headless desktop (virtualized setup, remoting in)? See https://github.com/hyprwm/Hyprland/pull/13616 (and its companion in aquamarine, https://github.com/hyprwm/aquamarine/pull/255). Spoiler alert; there's a little more to it than meets the eye, at least on trixie. Still wanted to plant the seed, even though it would lead us too far for this tutorial.
 
 </details>
 
