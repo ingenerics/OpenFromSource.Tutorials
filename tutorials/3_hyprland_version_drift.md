@@ -61,9 +61,22 @@ jq
 vit@bis OpenFromSource$ pm add --file /tmp/hyprland_main.txt
 ```
 
-You should get a normal summary — the exact `Packages requested`/`Resolved` counts vary with your cache. Then verify and download as usual. None of this is required for the trap story, so skip it if you'd rather go straight to Hyprland.
+<details><summary>Full add log</summary>
 
-> **Good to know** — the count shown here says 6 packages resolved even though the list has more lines. Some entries resolve to already-cached packages or get merged; the resolved count reflects what's genuinely new. "Counts vary with your cache."
+```console
+WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
+Resolved 1/9WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: openssl-provider-legacy -> libssl3t64
+Resolved 4/9WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libheif-plugin-dav1d -> libheif1
+WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libheif-plugin-libde265 -> libheif1
+Resolved 9/9
+Packages requested:  9
+Packages resolved:   9
+Errors:              0
+```
+
+You should get a similar summary — the exact `Packages requested`/`Resolved` counts vary with your cache. Then verify and download as usual. None of this is required for the trap story, so skip it if you'd rather go straight to Hyprland.
+
+> **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as Tutorial 2, joined this time by lines like `Resolved 1/9WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
 
 ### Step 1.2 — Switch on the developer profile
 
@@ -98,8 +111,7 @@ vit@bis OpenFromSource$ pm add --file /tmp/hyprland_backports.txt --source trixi
 
 ```console
 vit@bis OpenFromSource$ pm add --file /tmp/hyprland_backports.txt --source trixie-backports
-INFO:package_mgmt.lib.service.db_init:Database schema validated at /var/cache/package_mgmt/package_mgmt.db (v1)
-INFO:package_mgmt.lib.service.resolver:Indexes loaded: 73148 binary packages, 38977 source packages (2 sources configured)
+txt --source trixie-backports
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: openssl-provider-legacy -> libssl3t64
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libheif-plugin-dav1d -> libheif1
@@ -109,6 +121,7 @@ WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: librust-
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: librust-memchr-2-dev -> librust-log-0.4+default-dev
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: rake -> ruby
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: ruby-rubygems -> ruby
+WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: dmsetup -> libdevmapper1.02.1
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: liblwp-protocol-https-perl -> libwww-perl
 
 Packages requested:  2
@@ -116,7 +129,7 @@ Packages resolved:   2
 Errors:              0
 ```
 
-> **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as Tutorial 2, joined this time by lines like `Resolved 2/2WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
+> **It's fine** — the `Circular dependency` warnings are the same Debian graph loops as encountered previously, joined this time by lines like `Resolved 2/2WARNING:…` where the progress marker and a warning collided on one terminal line. `Errors: 0` is the number that counts.
 
 </details>
 
@@ -127,7 +140,7 @@ vit@bis OpenFromSource$ pm list --deps hyprland
 $ pm verify
 ```
 
-Both should report `COMPLETE`. Then download — 993 binaries *and* 154 sources this time, because the developer profile is on:
+The status will now show `INCOMPLETE`, we'll come back to that. Next download — 993 binaries *and* 154 sources this time, because the developer profile is on:
 
 ```bash
 vit@bis OpenFromSource$ pm download
@@ -135,32 +148,31 @@ vit@bis OpenFromSource$ pm download
 
 ```console
 vit@bis OpenFromSource$ pm download
-Elapsed: 00:00:32
-[░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 21/993 files (8.1 MiB/946.8 MiB)
-…
-Elapsed: 00:53:35
-[████████████████████████████████████████] 993/993 files (946.8 MiB/946.8 MiB)
+Elapsed: 00:01:47
+[████████████████████████████████████████] 959/959 files (912.6 MiB/912.6 MiB)
 
 Binary phase summary
 ────────────────────
-Files downloaded:  993
-Bytes:             946.8 MiB
-Files verified:    993
+Files downloaded:  959
+Bytes:             912.6 MiB
+Files verified:    959
+HTTP statuses:     200:959
+Network errors:    0
 Failed:            0
-Elapsed:           00:53:35
-…
-Elapsed: 00:20:43
-[████████████████████████████████████████] 154/154 files (341.7 MiB/341.7 MiB)
+Elapsed:           00:01:47
+Elapsed: 00:00:40
+[████████████████████████████████████████] 106/106 files (323.7 MiB/323.7 MiB)
 
 Source phase summary
 ────────────────────
-Files downloaded:  154
-Bytes:             341.7 MiB
-Files verified:    154
+Files downloaded:  106
+Bytes:             323.7 MiB
+Files verified:    106
+HTTP statuses:     200:106
+Network errors:    0
 Failed:            0
-Elapsed:           00:20:43
-…
-Total: 1147 files downloaded, 1147 verified, 0 failed (01:14:18)
+Elapsed:           00:00:40
+Total: 1065 files downloaded, 1065 verified, 0 failed (00:02:27)
 ```
 
 ## Milestone 2 — Ship, install, and step in the trap
@@ -174,15 +186,14 @@ Output
 
 ```console
 vit@bis OpenFromSource$ pm sync --system ex-box
-INFO:package_mgmt.lib.service.handoff:diff generated: 993 new across 2 release(s) (trixie, trixie-backports), 211 delivered in the base set
 Sync ready:      /var/cache/package_mgmt/binary/diff
 Release:         trixie, trixie-backports
 Components:      trixie: main, contrib, non-free; trixie-backports: main
-New packages:    993 (trixie/main: 930, trixie-backports/main: 63)
-Total offered:   1204 (prior 211 + new 993)
+New packages:    959 (trixie/main: 891, trixie-backports/main: 68)
+Total offered:   1170 (prior 211 + new 959)
 Signed:          yes (key offline-cache.gpg, same as handoff)
 Apply:           /var/cache/package_mgmt/binary/diff/apply.sh
-Snapshot:        993 binaries marked for 'ex-box'
+Snapshot:        959 binaries marked for 'ex-box'
 ```
 
 The sync clears any stale `diff` directory before writing the new one, so no housekeeping needed here. Copy `diff` onto the stick.
@@ -198,8 +209,8 @@ Output
 ```console
 op@ex-box ~$ sudo /var/cache/package_mgmt/binary/diff/apply.sh
 Apply: merging diff into /var/cache/package_mgmt/binary (releases: trixie, trixie-backports)
-New files:       993
-Offered after:   1204 packages (993 new)
+New files:       959
+Offered after:   1170 packages (959 new)
 Handoff indexes: replaced for trixie trixie-backports
 apt update: OK
 ```
@@ -231,9 +242,9 @@ REMOVING:
   kitty  libxkbcommon-x11-0
 
 Summary:
-  Upgrading: 1, Installing: 92, Removing: 2, Not Upgrading: 265
-  Download size: 0 B / 64.8 MB
-  Freed space: 23.9 MB
+  Upgrading: 2, Installing: 27, Removing: 2, Not Upgrading: 11
+  Download size: 0 B / 9,227 kB
+  Freed space: 50.2 MB
 
 Continue? [Y/n]
 ```
@@ -244,52 +255,7 @@ Continue? [Y/n]
 
 > **Say what? — "libxkbcommon-x11-0":** the X11 bridge for the XKB keyboard library. kitty needs it; Hyprland's backports `libxkbcommon0` 1.13.1 makes the old main build unsatisfiable. The core library (`libxkbcommon0`) and its X11 helper are two separate binary packages built from one source.
 
-For now, let it install — confirm `Y`. Hyprland is the point of this chapter. The details show the full install.
-
-<details><summary>Full Hyprland install log</summary>
-
-```console
-op@ex-box ~$ sudo apt install hyprland hyprland-guiutils
-The following packages were automatically installed and are no longer required:
-  kitty-shell-integration  kitty-terminfo  libpython3.13  libxcb-xkb1
-Use 'sudo apt autoremove' to remove them.
-
-Upgrading:
-  libxkbcommon0
-
-Installing:
-  hyprland  hyprland-guiutils
-
-Installing dependencies:
-  binutils           libduktape207            libheif1          liblerc4               libsensors-config    libxcb-errors0
-  fontconfig         libegl-mesa0             libhwy1t64        libllvm19              libsensors5          libxcb-icccm4
-  libabsl20240722    libegl1                  libhyprcursor0    liblua5.4-0            libsharpyuv0         libxcb-present0
-  libaquamarine10    libevdev2                libhyprgraphics4  libmtdev1t64           libthai-data         libxcb-randr0
-  libaquamarine9     libfribidi0              libhyprlang2      libmuparser2v5         libthai0             libxcb-res0
-  libcairo-gobject2  libgbm1                  libhyprtoolkit5   libopengl0             libtiff6             libxcb-sync1
-  libdatrie1         libgdk-pixbuf-2.0-0      libhyprutils10    libpango-1.0-0         libtomlplusplus3t64  libxcb-xfixes0
-  libdav1d7          libgdk-pixbuf2.0-common  libhyprutils12    libpangocairo-1.0-0    libudis86-0          libxshmfence1
-  libde265-0         libgl1-mesa-dri          libhyprwire3      libpangoft2-1.0-0      libvulkan1           libz3-4
-  libdeflate0        libgles2                 libiniparser4     libpciaccess0          libwacom-common      libzip5
-  libdisplay-info2   libglvnd0                libinput-bin      libpolkit-agent-1-0    libwacom9            mesa-libgallium
-  libdrm-amdgpu1     libgprofng0              libinput10        libpolkit-gobject-1-0  libwayland-server0   polkitd
-  libdrm-common      libgudev-1.0-0           libjbig0          libre2-11              libwebp7             sgml-base
-  libdrm-intel1      libheif-plugin-dav1d     libjpeg62-turbo   librsvg2-2             libxcb-composite0    shared-mime-info
-  libdrm2            libheif-plugin-libde265  libjxl0.11        libseat1               libxcb-dri3-0        xml-core
-
-REMOVING:
-  kitty  libxkbcommon-x11-0
-
-Summary:
-  Upgrading: 1, Installing: 92, Removing: 2, Not Upgrading: 265
-  Download size: 0 B / 64.8 MB
-  Freed space: 23.9 MB
-
-Continue? [Y/n]
-```
-
-</details>
-
+For now, let it install — confirm `Y`. Hyprland is the point of this chapter. 
 ### Step 2.4 — Confirm the damage
 
 Kitty isn't just uninstalled — apt can't even install it back:
@@ -357,63 +323,57 @@ libxkbcommon-x11-0 (current)
   │   ├─ libxau6 (= 1:1.0.11-1) [binary ✓, source: missing, verified: ✓]
   │   └─ libxdmcp6 (= 1:1.1.5-1) [binary ✓, source: missing, verified: ✓]
   ├─ [build] xkb-data (= 2.42-1) [binary ✓, verified: ✓]
-  ├─ [build] debhelper (= 13.24.2) [binary ✓, verified: ✗]
   ├─ [build] pkgconf (= 1.8.1-4) [binary ✓, verified: ✓]
-  ├─ [build] meson (= 1.7.0-1) [binary ✓, verified: ✓]
+  ├─ [build] x11proto-dev (= 2024.1-1) [binary ✓, verified: ✓]
+  ├─ [build] libwayland-dev (= 1.23.1-3) [binary ✓, verified: ✓]
+  ├─ [build] x11-xkb-utils (= 7.7+9) [binary ✓, verified: ✓]
   ├─ [build] quilt (= 0.68-1) [binary ✓, verified: ✓]
   ├─ [build] bison (= 2:3.8.2+dfsg-1+b2) [binary ✓, verified: ✓]
-  ├─ [build] x11proto-dev (= 2024.1-1) [binary ✓, verified: ✓]
-  ├─ [build] flex (= 2.6.4-8.2+b4) [binary ✓, verified: ✓]
   ├─ [build] libxml2-dev (= 2.12.7+dfsg+really2.9.14-2.1+deb13u3) [binary ✓, verified: ✓]
+  ├─ [build] meson (= 1.7.0-1) [binary ✓, verified: ✓]
+  ├─ [build] xvfb (= 2:21.1.16-1.3+deb13u3) [binary ✓, verified: ✓]
+  ├─ [build] flex (= 2.6.4-8.2+b4) [binary ✓, verified: ✓]
   ├─ [build] doxygen (= 1.9.8+ds-2.1) [binary ✓, verified: ✓]
   ├─ [build] graphviz (= 2.42.4-3) [binary ✓, verified: ✓]
-  ├─ [build] x11-xkb-utils (= 7.7+9) [binary ✓, verified: ✓]
-  ├─ [build] xvfb (= 2:21.1.16-1.3+deb13u3) [binary ✓, verified: ✓]
   ├─ [build] dh-exec (= 0.30) [binary ✓, verified: ✓]
-  └─ [build] libxcb-xkb-dev (= 1.17.0-2+b1) [binary ✓, verified: ✓]
-```
-
-</details>
-
-> **Watch out** — `pm add libxkbcommon` (the source name) would *not* work: there's no binary package by that name, so the resolver reports it as an unresolvable virtual package. The source rides along when you add one of its binaries.
-
-### Step 3.2 — Admin: download, verify, ship
-
-```bash
-vit@bis OpenFromSource$ pm download
+  ├─ [build] libxcb-xkb-dev (= 1.17.0-2+b1) [binary ✓, verified: ✓]
+  ├─ [build] debhelper (= 13.24.2) [binary ✓, verified: ✗]
+  └─ [build] wayland-protocols (= 1.44-1) [binary ✓, verified: ✗]
 ```
 
 <details><summary>Full download log</summary>
 
 ```console
 vit@bis OpenFromSource$ pm download
-Elapsed: 00:00:58
-[████████████████████████████████████████] 9/9 files (14.4 MiB/14.4 MiB)
+Elapsed: 00:00:08
+[████████████████████████████████████████] 10/10 files (14.6 MiB/14.6 MiB)
 
 Binary phase summary
 ────────────────────
-Files downloaded:  9
-Bytes:             14.4 MiB
-Files verified:    9
+Files downloaded:  10
+Bytes:             14.6 MiB
+Files verified:    10
+HTTP statuses:     200:10
+Network errors:    0
 Failed:            0
-Elapsed:           00:00:58
-…
-Elapsed: 00:00:47
-[████████████████████████████████████████] 6/6 files (11.9 MiB/11.9 MiB)
+Elapsed:           00:00:08
+Elapsed: 00:00:08
+[████████████████████████████████████████] 3/3 files (532.8 KiB/532.8 KiB)
 
 Source phase summary
 ────────────────────
-Files downloaded:  6
-Bytes:             11.9 MiB
-Files verified:    6
+Files downloaded:  3
+Bytes:             532.8 KiB
+Files verified:    3
+HTTP statuses:     200:3
+Network errors:    0
 Failed:            0
-Elapsed:           00:00:47
-…
-Total: 15 files downloaded, 15 verified, 0 failed (00:01:45)
+Elapsed:           00:00:08
+Total: 13 files downloaded, 13 verified, 0 failed (00:00:17)
 ```
 </details>
 
-The six source files are the `libxkbcommon_1.7.0-2.dsc`, `.orig.tar.xz` and `.debian.tar.xz` (plus the build-tool sources). Next verify — and don't worry about the result:
+The source files are the `libxkbcommon_1.7.0-2.dsc`, `.orig.tar.xz` and `.debian.tar.xz` (plus the build-tool sources if they're not in cache already). Next verify — and don't worry about the result:
 
 ```bash
 vit@bis OpenFromSource$ pm verify
@@ -424,9 +384,9 @@ vit@bis OpenFromSource$ pm verify
 ```console
 Build-Tool Dependencies
 ───────────────────────
-Total build-dep links:  718
-Total build tools:      309
-Unresolved build deps:  38
+Total build-dep links:  584
+Total build tools:      290
+Unresolved build deps:  43
   - libelf-dev — usable record exists but not linked for matching version (required by: glib2.0)
   - python3-debian — usable record exists but not linked for matching version (required by: glib2.0)
   - wayland-protocols — usable record exists but not linked for matching version (required by: wl-clipboard)
@@ -438,7 +398,7 @@ Build Status:           INCOMPLETE
 Status:                 INCOMPLETE
 ```
 
-> **It's fine** — the `INCOMPLETE` build-tool status. It means 38 declared build-dependencies point at *superseded* versions — stale links left over from mixing main and backports in one cache, not missing tools (`Missing build tools: 0`, 309 tools present). The runtime graph is `COMPLETE`, and the main `libxkbcommon` source you're about to rebuild is fully satisfied. For the story, ignore it.
+> **It's fine** — the `INCOMPLETE` build-tool status. It means 43 declared build-dependencies point at *superseded* versions — stale links left over from mixing main and backports in one cache, not missing tools (`Missing build tools: 0`, 290 tools present). The runtime graph is `COMPLETE`, and the main `libxkbcommon` source you're about to rebuild is fully satisfied. For the story, ignore it.
 
 </details>
 
@@ -451,24 +411,32 @@ Output
 
 ```console
 vit@bis OpenFromSource$ pm sync --system ex-box
-INFO:package_mgmt.lib.service.handoff:diff generated: 19 new across 2 release(s) (trixie, trixie-backports), 1195 delivered in the base set
 Sync ready:      /var/cache/package_mgmt/binary/diff
 Release:         trixie, trixie-backports
 Components:      trixie: main, contrib, non-free; trixie-backports: main
-New packages:    19 (trixie/main: 19)
-Total offered:   1214 (prior 1195 + new 19)
+New packages:    10 (trixie/main: 10)
+Total offered:   1170 (prior 1160 + new 10)
 Signed:          yes (key offline-cache.gpg, same as handoff)
 Apply:           /var/cache/package_mgmt/binary/diff/apply.sh
-Snapshot:        19 binaries marked for 'ex-box'
+Snapshot:        10 binaries marked for 'ex-box'
 ```
 
-> **Good to know** — the diff carries **binaries only**; sources live in their own pool and don't travel in `diff/`. Copy the three `libxkbcommon_*` source files onto the stick separately, keeping the pool layout — say under `sources/main/lib/libxkbcommon/`.
+> **Good to know** — the diff carries **binaries only**; sources live in their own pool and don't travel in `diff/`. Copy the three `libxkbcommon_*` source files onto the stick separately, keeping the pool layout — say under `sources/pool/main/libx/libxkbcommon/`.
 
 ### Step 3.3 — Operator: apply the diff, install the build tools
 
 ```bash
 op@ex-box ~$ sudo /var/cache/package_mgmt/binary/diff/apply.sh
-$ sudo apt update
+```
+Output
+
+```console
+op@ex-box ~$ sudo /var/cache/package_mgmt/binary/diff/apply.sh
+Apply: merging diff into /var/cache/package_mgmt/binary (releases: trixie, trixie-backports)
+New files:       10
+Offered after:   1170 packages (10 new)
+Handoff indexes: replaced for trixie trixie-backports
+apt update: OK
 ```
 
 Now install the build tools. First attempt — this one will fail, and that's the lesson:
@@ -485,7 +453,9 @@ op@ex-box ~$ sudo apt install bison debhelper dh-exec doxygen flex graphviz \
 op@ex-box ~$ sudo apt install bison debhelper dh-exec doxygen flex graphviz \
      libxcb-xkb-dev libxml2-dev meson pkgconf quilt \
      x11-xkb-utils x11proto-dev xkb-data xvfb
-Solving dependencies... Error!  
+xkb-data is already the newest version (2.42-1).
+xkb-data set to manually installed.
+Solving dependencies... Error!
 Some packages could not be installed. This may mean that you have
 requested an impossible situation or if you are using the unstable
 distribution that some required packages have not yet been created
@@ -493,17 +463,17 @@ or been moved out of Incoming.
 The following information may help to resolve the situation:
 
 Unsatisfied dependencies:
- libglx-mesa0 : Depends: mesa-libgallium (= 25.0.7-2+deb13u1) but 26.1.2-1~bpo13+1 is to be installed
+ libglx-mesa0 : Depends: mesa-libgallium (= 25.0.7-2+deb13u1) but 26.1.6-1~bpo13+1 is to be installed
 Error: Unable to correct problems, you have held broken packages.
 Error: The following information from --solver 3.0 may provide additional context:
    Unable to satisfy dependencies. Reached two conflicting decisions:
    1. mesa-libgallium:amd64=25.0.7-2+deb13u1 is not selected for install
    2. mesa-libgallium:amd64=25.0.7-2+deb13u1 is selected as a downgrade because:
-       1. xvfb:amd64=2:21.1.16-1.3+deb13u3 is selected for install
-       2. xvfb:amd64 Depends libgl1
-       3. libgl1:amd64 Depends libglx0 (= 1.7.0-1+b2)
-       4. libglx0:amd64 Depends libglx-mesa0
-       5. libglx-mesa0:amd64 Depends mesa-libgallium (= 25.0.7-2+deb13u1)
+      1. xvfb:amd64=2:21.1.16-1.3+deb13u3 is selected for install
+      2. xvfb:amd64 Depends libgl1
+      3. libgl1:amd64 Depends libglx0 (= 1.7.0-1+b2)
+      4. libglx0:amd64 Depends libglx-mesa0
+      5. libglx-mesa0:amd64 Depends mesa-libgallium (= 25.0.7-2+deb13u1)
 ```
 
 </details>
@@ -521,7 +491,7 @@ op@ex-box ~$ sudo apt install build-essential bison debhelper dh-exec doxygen fl
 ### Step 3.4 — Operator: unpack the source
 
 ```bash
-op@ex-box ~$ mkdir -p ~/src && cd ~/src
+op@ex-box ~$ mkdir ~/src && cd ~/src
 op@ex-box ~/src$ cp /media/usb/sources/main/lib/libxkbcommon/* .
 op@ex-box ~/src$ dpkg-source -x libxkbcommon_1.7.0-2.dsc
 op@ex-box ~/src$ cd libxkbcommon-1.7.0
@@ -529,10 +499,15 @@ op@ex-box ~/src$ cd libxkbcommon-1.7.0
 
 ### Step 3.5 — Operator: relax the pin
 
-The `libxkbcommon-x11-0` stanza in `debian/control` pins the core library to the exact built version. That's the pin that broke kitty. Change it to accept anything from the same generation:
+The `libxkbcommon-x11-0` stanza in `debian/control` pins the core library to the exact built version (line 129). That's the pin that broke kitty. Change it to accept anything from the same generation:
 
 ```diff
- Depends:
+Package: libxkbcommon-x11-0
+Section: libs
+Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends:
 - libxkbcommon0 (= ${binary:Version}),
 + libxkbcommon0 (>= 1.7.0),
   ${shlibs:Depends},
@@ -615,6 +590,7 @@ kitty's `libxkbcommon-x11-0 (>= 0.5.0)` is satisfied by your rebuilt package, wh
 ```console
 op@ex-box ~$ kitty --version
 kitty 0.41.1 created by Kovid Goyal
+
 op@ex-box ~$ dpkg -l | grep -E 'kitty|libxkbcommon'
 ii  kitty                            0.41.1-2+deb13u2                     amd64        fast, featureful, GPU based terminal emulator
 ii  kitty-shell-integration          0.41.1-2+deb13u2                     all          fast, featureful, GPU based terminal emulator (shell integration files)

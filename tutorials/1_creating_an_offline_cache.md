@@ -45,7 +45,7 @@ The recorded runs used the Debian 13.7 DVD installer. Where a command needs root
 `package_mgmt` keeps its state under `/var/cache/package_mgmt`. Create it and hand it to your user:
 
 ```bash
-$ export CACHEPATH="/var/cache/package_mgmt"
+vit@bis $ export CACHEPATH="/var/cache/package_mgmt"
 $ sudo mkdir $CACHEPATH
 $ sudo chown -R $USER:$USER $CACHEPATH
 ```
@@ -53,10 +53,10 @@ $ sudo chown -R $USER:$USER $CACHEPATH
 ### Step 1.2 — Get the project and its system dependencies
 
 ```bash
-vit@bis $ git clone https://github.com/ingenerics/OpenFromSource
+vit@bis $ sudo apt update
+$ sudo apt install -y git curl python3 python3-pip gpgv gpg gpg-agent
+$ git clone https://github.com/ingenerics/OpenFromSource
 $ cd OpenFromSource
-$ sudo apt update
-$ sudo apt install -y git python3 python3-pip gpgv gpg gpg-agent
 ```
 
 We're working from the repo directory, so the prompt `vit@bis OpenFromSource$` is where we'll spend the rest of the admin's part.
@@ -82,6 +82,11 @@ To add $HOME/.local/bin to your PATH, either restart your shell or run:
 
     source $HOME/.local/bin/env (sh, bash, zsh)
     source $HOME/.local/bin/env.fish (fish)
+```
+To add uv to your PATH (or restart your shell):
+
+```bash
+vit@bis OpenFromSource$ source $HOME/.local/bin/env
 ```
 
 ### Step 1.4 — Create a virtual environment
@@ -187,12 +192,13 @@ options:
 …but commands that read the config fail away from the project root:
 
 ```bash
-vit@bis ~$ pm init
+vit@bis ~$ pm config
 ```
 Output
 
 ```console
-vit@bis ~$ pm init
+vit@bis ~$ pm config
+ERROR:package_mgmt.cli.commands.config:Config load failed: Default config not found: project.defaults.toml
 {"error": "Default config not found: project.defaults.toml", "exit_code": 102}
 ```
 
@@ -229,6 +235,7 @@ Configuration:
   fetch_source          false                      (default)
   …
   max_source_dep_depth  0                          (default)
+  …
 ```
 
 `fetch_source: false` and `max_source_dep_depth: 0`, both `(default)` — that's regular_user. The deeper profiles flip these: Tutorial 2 adds a local component, Tutorial 3 turns on the developer profile, Tutorial 5 the graybeard one.
@@ -252,11 +259,6 @@ vit@bis OpenFromSource$ pm init
 <details><summary>Full init log</summary>
 
 ```console
-INFO:package_mgmt.lib.service.initializer:Binary cache /var/cache/package_mgmt/binary (was created)
-INFO:package_mgmt.lib.service.initializer:Source cache /var/cache/package_mgmt/source (was created)
-INFO:package_mgmt.lib.service.db_init:Database created at /var/cache/package_mgmt/package_mgmt.db (schema v1)
-INFO:package_mgmt.cli.commands.init:Fetching: https://deb.debian.org/debian/dists/trixie/main/binary-amd64/Packages.gz
-INFO:package_mgmt.lib.service.initializer:Populated 68640 provides entries into database
 Base directory:    /var/cache/package_mgmt
 Binary cache:      /var/cache/package_mgmt/binary
 Source cache:      /var/cache/package_mgmt/source
@@ -267,7 +269,6 @@ Archive sources:
   [1] trixie/main — 68825 binaries
 Provides entries:  68640
 Status:            initialized
-INFO:package_mgmt.cli.commands.init:Init completed (base_dir=/var/cache/package_mgmt, schema=v1, provides=68640, status=initialized)
 ```
 
 </details>
@@ -367,7 +368,7 @@ Status:                 COMPLETE
 
 This might come as a surprise, but all we've done so far is `add` metadata to the `package_mgmt` database. This design is intentional, not an afterthought. We can add as many packages as we'd like *before* triggering the download. Which will then only pull the minimal set that has not been retrieved yet.
 
-Now pull down every file in the graph and verify each one against the signed index:
+Now to pull down every file in the graph and verify each one against the signed index:
 
 ```bash
 vit@bis OpenFromSource$ pm download
@@ -377,10 +378,20 @@ You should see a progress bar and a summary:
 
 ```console
 vit@bis OpenFromSource$ pm download
-Elapsed: 00:00:15
+Elapsed: 00:00:14
 [████████████████████████████████████████] 156/156 files (74.2 MiB/74.2 MiB)
-…
-Total: 156 files downloaded, 156 verified, 0 failed (00:04:05)
+
+Binary phase summary
+────────────────────
+Files downloaded:  156
+Bytes:             74.2 MiB
+Files verified:    156
+HTTP statuses:     200:156
+Network errors:    0
+Failed:            0
+Elapsed:           00:00:14
+Source phase: nothing to download.
+Total: 156 files downloaded, 156 verified, 0 failed (00:00:14)
 ```
 
 > **Say what? — "verified":** each downloaded file's checksum was checked against the signed index before being accepted into the cache. A file that fails verification is never installed on anyone's box.
@@ -410,11 +421,11 @@ $ pm handoff --system ex-box
 You should get something like:
 
 ```console
-INFO:package_mgmt.lib.service.handoff:handoff generated: 156 packages across 2 release(s) (trixie, trixie-backports)
+vit@bis OpenFromSource$ pm handoff --system ex-box
 Handoff ready: /var/cache/package_mgmt/binary/handoff
-Release:        trixie, trixie-backports
-Components:     trixie: main, contrib, non-free; trixie-backports: main
-Packages:       156 (trixie/main: 156, trixie/contrib: 0, trixie/non-free: 0, trixie-backports/main: 0)
+Release:        trixie
+Components:     main
+Packages:       156 (main: 156)
 Signed:         yes (key offline-cache.gpg)
 Bootstrap:      /var/cache/package_mgmt/binary/handoff/bootstrap.sh
 Snapshot:       156 binaries marked for 'ex-box'
@@ -462,18 +473,13 @@ op@ex-box ~$ sudo /var/cache/package_mgmt/binary/handoff/bootstrap.sh
 ```console
 op@ex-box ~$ sudo /var/cache/package_mgmt/binary/handoff/bootstrap.sh
 Ign:1 file:/var/cache/package_mgmt/binary/handoff trixie InRelease
-Ign:2 file:/var/cache/package_mgmt/binary/handoff trixie-backports InRelease
-Get:3 file:/var/cache/package_mgmt/binary/handoff trixie Release [2,991 B]
-Get:3 file:/var/cache/package_mgmt/binary/handoff trixie Release [2,991 B]
-Get:4 file:/var/cache/package_mgmt/binary/handoff trixie-backports Release [1,122 B]
-Get:5 file:/var/cache/package_mgmt/binary/handoff trixie Release.gpg [488 B]
-Get:4 file:/var/cache/package_mgmt/binary/handoff trixie-backports Release [1,122 B]
-Get:6 file:/var/cache/package_mgmt/binary/handoff trixie-backports Release.gpg [488 B]
-Get:5 file:/var/cache/package_mgmt/binary/handoff trixie Release.gpg [488 B]
-Get:6 file:/var/cache/package_mgmt/binary/handoff trixie-backports Release.gpg [488 B]
-Get:7 file:/var/cache/package_mgmt/binary/handoff trixie/main amd64 Packages [14.2 kB]
-101 packages can be upgraded. Run 'apt list --upgradable' to see them.
-Bootstrap: configuring apt from /var/cache/package_mgmt/binary/handoff (releases: trixie, trixie-backports)
+Get:2 file:/var/cache/package_mgmt/binary/handoff trixie Release [1,102 B]
+Get:2 file:/var/cache/package_mgmt/binary/handoff trixie Release [1,102 B]
+Get:3 file:/var/cache/package_mgmt/binary/handoff trixie Release.gpg [488 B]
+Get:3 file:/var/cache/package_mgmt/binary/handoff trixie Release.gpg [488 B]
+Get:4 file:/var/cache/package_mgmt/binary/handoff trixie/main amd64 Packages [17.4 kB]
+All packages are up to date.    
+Bootstrap: configuring apt from /var/cache/package_mgmt/binary/handoff (release trixie)
 Source added: /etc/apt/sources.list.d/openfromsource-cache.list
 apt update: OK
 ```
@@ -493,37 +499,19 @@ Output
 
 ```console
 op@ex-box ~$ cat /etc/apt/sources.list.d/openfromsource-cache.list
-deb [signed-by=/var/cache/package_mgmt/binary/handoff/offline-cache.gpg] file:/var/cache/package_mgmt/binary/handoff trixie main contrib non-free
-deb [signed-by=/var/cache/package_mgmt/binary/handoff/offline-cache.gpg] file:/var/cache/package_mgmt/binary/handoff trixie-backports main
+deb [signed-by=/var/cache/package_mgmt/binary/handoff/offline-cache.gpg] file:/var/cache/package_mgmt/binary/handoff trixie main
 ```
 
-> **Say what? — "sources list":** the file that tells apt where to look for packages. Here both entries point at the local handoff directory on the stick's copy, signed by the cache's key. There is no `http://` anywhere.
+> **Say what? — "sources list":** the file that tells apt where to look for packages. Here the entry points at the local handoff directory on the stick's copy, signed by the cache's key. There is no `http://` anywhere.
 
 ### Step 5.4 — Upgrade the fresh install from the cache
 
-The installer's media is older than the cache you just built, so the box is behind by 101 packages. Bring it up to date:
+If the installer's media is older than the cache you just built, there will be packages that can be upgraded:
 
 ```bash
 op@ex-box ~$ sudo apt update
 $ sudo apt upgrade
 ```
-
-You should see the plan — and the important number:
-
-```console
-op@ex-box ~$ sudo apt upgrade
-Upgrading:
-  adduser  libcrypt1  …  zlib1g
-…
-Summary:
-  Upgrading: 101, Installing: 0, Removing: 0, Not Upgrading: 0
-  Download size: 0 B / 41.9 MB
-  Freed space: 183 MB
-
-Continue? [Y/n]
-```
-
-**Download size: 0 B.** Every one of those 101 packages is served from the local handoff — the offline box is now its own mirror. Answer `Y` and let it unpack.
 
 ## Checkpoint — the box is served, not downloading
 

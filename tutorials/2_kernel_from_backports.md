@@ -52,17 +52,44 @@ The kernel is a special customer: you want a *specific* backports build, not "wh
 
 ### Step 1.1 — Write the kernel manifest
 
-Two lines: the image metapackage and the headers, both pinned to the backports build `7.1.8-1~bpo13+1`.
+First, we need to add backports to our apt sources. Edit `/etc/apt/sources.list` and add:
+
+```txt
+deb http://deb.debian.org/debian trixie-backports main
+```
+Update apt
+
+```bash
+vit@bis $ sudo apt update
+```
+You should see trixie-backports among the output, now to query the available versions over all sources:
+
+```bash
+vit@bis $ apt-cache policy linux-image-amd64
+linux-image-amd64:
+  Installed: 6.12.107-1
+  Candidate: 6.12.113-1
+  Version table:
+     7.2.9-1~bpo13+1 100
+        100 http://deb.debian.org/debian trixie-backports/main amd64 Packages
+     6.12.113-1 500
+        500 http://security.debian.org/debian-security trixie-security/main amd64 Packages
+ *** 6.12.107-1 500
+        500 http://deb.debian.org/debian trixie/main amd64 Packages
+        100 /var/lib/dpkg/status
+```
+
+Two lines: the image metapackage and the headers, both pinned to the backports build `7.2.9-1~bpo13+1`.
 
 ```txt
 # backports kernel image + headers, pinned to the backports build
-linux-image-amd64=7.1.8-1~bpo13+1
-linux-headers-amd64=7.1.8-1~bpo13+1
+linux-image-amd64=7.2.9-1~bpo13+1
+linux-headers-amd64=7.2.9-1~bpo13+1
 ```
 
 > **Say what? — "metapackage":** `linux-image-amd64` is a tiny package that does nothing but depend on the real kernel package and track the newest one. Pinning the metapackage's version pins the kernel, without you ever naming `linux-image-7.1.8+deb13-amd64` yourself.
 
-> **Good to know** — the available kernel versions changes over time. If the versions above can no longer be found, you can drop the pin (`=7.1.8-1~bpo13+1`).
+> **Good to know** — the available kernel versions changes over time. If the versions above can no longer be found, you can drop the pin (`=7.2.9-1~bpo13+1`).
 
 ### Step 1.2 — Add it, from backports
 
@@ -76,7 +103,6 @@ You should get something like:
 
 ```console
 vit@bis OpenFromSource$ pm add --file /tmp/kernel.txt --source trixie-backports
-INFO:package_mgmt.lib.service.resolver:Indexes loaded: 73148 binary packages, 0 source packages (2 sources configured)
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: libgcc-s1 -> libc6
 WARNING:package_mgmt.lib.service.resolver:Circular dependency detected: openssl-provider-legacy -> libssl3t64
 Resolved 2/2
@@ -102,21 +128,23 @@ vit@bis OpenFromSource$ pm download
 Output
 
 ```console
-Elapsed: 00:13:17
-[████████████████████████████████████████] 56/56 files (235.9 MiB/235.9 MiB)
+Elapsed: 00:00:28
+[████████████████████████████████████████] 56/56 files (236.5 MiB/236.5 MiB)
 
 Binary phase summary
 ────────────────────
 Files downloaded:  56
-Bytes:             235.9 MiB
+Bytes:             236.5 MiB
 Files verified:    56
+HTTP statuses:     200:56
+Network errors:    0
 Failed:            0
-Elapsed:           00:13:17
-…
-Total: 56 files downloaded, 56 verified, 0 failed (00:13:17)
+Elapsed:           00:00:28
+Source phase: nothing to download.
+Total: 56 files downloaded, 56 verified, 0 failed (00:00:28)
 ```
 
-56 files, 235.9 MiB, every one verified.
+56 files, 236.5 MiB, every one verified.
 
 ## Milestone 2 — Sync a diff, not a new handoff
 
@@ -130,11 +158,10 @@ vit@bis OpenFromSource$ pm sync --system ex-box
 
 ```console
 vit@bis OpenFromSource$ pm sync --system ex-box
-INFO:package_mgmt.lib.service.handoff:diff generated: 56 new across 2 release(s) (trixie, trixie-backports), 156 delivered in the base set
 Sync ready:      /var/cache/package_mgmt/binary/diff
 Release:         trixie, trixie-backports
 Components:      trixie: main, contrib, non-free; trixie-backports: main
-New packages:    56 (trixie/main: 44, trixie-backports/main: 12)
+New packages:    56 (trixie/main: 43, trixie-backports/main: 13)
 Total offered:   212 (prior 156 + new 56)
 Signed:          yes (key offline-cache.gpg, same as handoff)
 Apply:           /var/cache/package_mgmt/binary/diff/apply.sh
@@ -172,6 +199,25 @@ apt update: OK
 
 `apt update: OK` — the handoff index now advertises the kernel, signed with the same key apt already trusts.
 
+There is a twist, however, just as we added an apt source (backports) on the admin's system, we will need to so on the operator's side as well. 
+
+Edit the OpenFromSource sources list:
+
+```bash
+op@ex-box ~$ sudo nvim /etc/apt/sources.list.d/openfromsource-cache.list
+```
+And add backports
+
+```txt
+deb [signed-by=/var/cache/package_mgmt/binary/handoff/offline-cache.gpg] file:/var/cache/package_mgmt/binary/handoff trixie main
+deb [signed-by=/var/cache/package_mgmt/binary/handoff/offline-cache.gpg] file:/var/cache/package_mgmt/binary/handoff trixie-backports main
+```
+Update apt
+
+```bash
+op@ex-box ~$ sudo apt update
+```
+
 ### Step 3.3 — Install the kernel
 
 ```bash
@@ -183,18 +229,17 @@ You should see the plan — note that apt treats the backports kernel as a newer
 ```console
 op@ex-box ~$ sudo apt install linux-image-amd64 linux-headers-amd64
 Upgrading:
-  libelf1t64  linux-image-amd64
+  …
 
 Installing:
   linux-headers-amd64
 
 Installing dependencies:
-  binutils-common  …  linux-modules-7.1.8+deb13-amd64  …
-
-Summary:
-  Upgrading: 2, Installing: 34, Removing: 0, Not Upgrading: 174
-  Download size: 0 B / 239 MB
-  Freed space: 1,271 kB
+  binutils-common  
+  … 
+  linux-binary-7.2.9+deb13-amd64
+  linux-headers-7.2.9+deb13-amd64
+  …
 
 Continue? [Y/n]
 ```
@@ -204,22 +249,22 @@ Continue? [Y/n]
 <details><summary>Full kernel install log</summary>
 
 ```console
-Get:1 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-base-7.1.8+deb13-amd64 amd64 7.1.8-1~bpo13+1 [1,118 kB]
-Get:2 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-binary-7.1.8+deb13-amd64 amd64 7.1.8-1~bpo13+1 [13.8 MB]
-Get:3 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-modules-7.1.8+deb13-amd64 amd64 7.1.8-1~bpo13+1 [159 MB]
-Get:4 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-image-7.1.8+deb13-amd64 amd64 7.1.8-1~bpo13+1 [1,896 B]
-<SNIP — 31 more Get: lines>
-Unpacking linux-image-amd64 (7.1.8-1~bpo13+1) over (6.12.107-1) ...
+Get:1 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-base all 4.17~bpo13+1 [26.8 kB]
+Get:2 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-base-7.2.9+deb13-amd64 amd64 7.2.9-1~bpo13+1 [1,072 kB]
+Get:3 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-binary-7.2.9+deb13-amd64 amd64 7.2.9-1~bpo13+1 [14.0 MB]
+Get:4 file:/var/cache/package_mgmt/binary/handoff trixie-backports/main amd64 linux-modules-7.2.9+deb13-amd64 amd64 7.2.9-1~bpo13+1 [159 MB]
 …
-Setting up linux-image-7.1.8+deb13-amd64 (7.1.8-1~bpo13+1) ...
-I: /vmlinuz is now a symlink to boot/vmlinuz-7.1.8+deb13-amd64
-I: /initrd.img is now a symlink to boot/initrd.img-7.1.8+deb13-amd64
+Unpacking linux-image-7.2.9+deb13-amd64 (7.2.9-1~bpo13+1) ...
+…
+Setting up linux-image-7.2.9+deb13-amd64 (7.2.9-1~bpo13+1) ...
+I: /vmlinuz is now a symlink to boot/vmlinuz-7.2.9+deb13-amd64
+I: /initrd.img is now a symlink to boot/initrd.img-7.2.9+deb13-amd64
 /etc/kernel/postinst.d/initramfs-tools:
-update-initramfs: Generating /boot/initrd.img-7.1.8+deb13-amd64
+update-initramfs: Generating /boot/initrd.img-7.2.9+deb13-amd64
 /etc/kernel/postinst.d/zz-update-grub:
 Generating grub configuration file ...
-Found linux image: /boot/vmlinuz-7.1.8+deb13-amd64
-Found initrd image: /boot/initrd.img-7.1.8+deb13-amd64
+Found linux image: /boot/vmlinuz-7.2.9+deb13-amd64
+Found initrd image: /boot/initrd.img-7.2.9+deb13-amd64
 Found linux image: /boot/vmlinuz-6.12.107+deb13-amd64
 Found initrd image: /boot/initrd.img-6.12.107+deb13-amd64
 Warning: os-prober will not be executed to detect other bootable partitions.
@@ -227,14 +272,19 @@ Systems on them will not be added to the GRUB boot configuration.
 Check GRUB_DISABLE_OS_PROBER documentation entry.
 Adding boot menu entry for UEFI Firmware Settings ...
 done
-Setting up linux-image-amd64 (7.1.8-1~bpo13+1) ...
-…
-Setting up linux-headers-amd64 (7.1.8-1~bpo13+1) ...
+Setting up linux-image-amd64 (7.2.9-1~bpo13+1) ...
+Setting up linux-kbuild-7.2.9+deb13 (7.2.9-1~bpo13+1) ...
+Setting up cpp-14-x86-64-linux-gnu (14.2.0-19) ...
+Setting up libgcc-14-dev:amd64 (14.2.0-19) ...
+Setting up binutils-x86-64-linux-gnu (2.44-3) ...
+Setting up cpp-14-for-host:amd64 (14.2.0-19) ...
+Setting up gcc-14-x86-64-linux-gnu (14.2.0-19) ...
+Setting up gcc-14-for-host:amd64 (14.2.0-19) ...
+Setting up linux-headers-7.2.9+deb13-amd64 (7.2.9-1~bpo13+1) ...
+Setting up linux-headers-amd64 (7.2.9-1~bpo13+1) ...
 Processing triggers for man-db (2.13.1-1) ...
 Processing triggers for libc-bin (2.41-12+deb13u4) ...
 ```
-
-> **It's fine** — the `os-prober` warning. GRUB keeps the old 6.12.107 entry as a fallback; nothing else was detected to boot.
 
 </details>
 
@@ -246,14 +296,14 @@ op@ex-box ~$ sudo reboot
 
 ## Checkpoint — prove the running kernel is the backports one
 
-After the box comes back up, the running kernel should be 7.1.8:
+After the box comes back up, the running kernel should be 7.2.9:
 
 ```console
 op@ex-box ~$ cat /proc/version
-Linux version 7.1.8+deb13-amd64 (debian-kernel@lists.debian.org) (x86_64-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP PREEMPT_DYNAMIC Debian 7.1.8-1~bpo13+1 (2026-08-16)
+Linux version 7.2.9+deb13-amd64 (debian-kernel@lists.debian.org) (x86_64-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP PREEMPT_DYNAMIC Debian 7.2.9-1~bpo13+1 (2026-10-13)
 ```
 
-`7.1.8+deb13-amd64` with `~bpo13+1` in the build, that's the backports kernel running on our offline box.
+`7.2.9-1~bpo13+1` with `~bpo13+1` in the build, that's the backports kernel running on our offline box.
 
 ## Milestone 4 — Clear the diff
 
